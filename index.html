@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Sora:wght@300..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/pizzip@3.1.5/dist/pizzip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.22.2/docxtemplater.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+  </head>
+
+<body>
+    <header class="app-header">
+        <div class="left-menu">
+          <div class="logo">
+            <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+          </div>
+          <div class="brand">
+            <span>Agenda ESA</span>
+            <small>Planejamento semanal</small>
+          </div>
+          <button id="limparCampos" class="btn btn-ghost">
+            <i class="fa-solid fa-broom"></i>
+            Limpar Tudo
+          </button>
+        </div>
+        <div class="right-menu">
+          <button id="gerar-doc" class="btn btn-primary">
+            <i class="fa-solid fa-file-arrow-down"></i>
+            Gerar e Baixar
+          </button>
+          <button id="search-btn" class="icon-btn" aria-label="Buscar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </button>
+          <button id="menu-toggle" class="icon-btn" aria-label="Menu">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+        </div>
+    </header>
+
+    <div class="drawer-overlay" id="drawer-overlay"></div>
+    <aside class="drawer" id="agenda-drawer" aria-hidden="true">
+      <div class="drawer-header">
+        <div>
+          <h3>Menu</h3>
+          <p>Agenda e gerenciamento</p>
+        </div>
+        <button class="icon-btn" id="drawer-close" aria-label="Fechar menu">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="drawer-tabs">
+        <button class="tab-btn is-active" data-tab="tab-agenda">Agenda</button>
+        <button class="tab-btn" data-tab="tab-manage">Gerenciar</button>
+      </div>
+      <div class="drawer-content">
+        <section class="tab-panel is-active" id="tab-agenda">
+          <div class="panel-card">
+            <h4>Atalhos rápidos</h4>
+            <button class="btn btn-ghost" data-scroll="date-section">
+              <i class="fa-solid fa-calendar-week"></i>
+              Ir para datas
+            </button>
+            <button class="btn btn-ghost" data-scroll="card-grid">
+              <i class="fa-solid fa-table-cells-large"></i>
+              Ver agenda
+            </button>
+            <button class="btn btn-ghost" id="open-report">
+              <i class="fa-solid fa-list-check"></i>
+              Ver relatório de campos
+            </button>
+          </div>
+          <div class="panel-card">
+            <h4>Dica</h4>
+            <p>Use a busca do navegador para achar rapidamente um professor ou turma.</p>
+          </div>
+          <div class="panel-card">
+            <h4>Professores faltando</h4>
+            <p>Mostra quem não está marcado na lista principal.</p>
+            <div class="missing-list" id="missing-list"></div>
+          </div>
+        </section>
+        <section class="tab-panel" id="tab-manage">
+          <div class="panel-card">
+            <h4>Criar professor</h4>
+            <div class="inline-form">
+              <input id="new-teacher-name" type="text" placeholder="Nome do professor" />
+              <button class="btn btn-primary" id="add-teacher">
+                <i class="fa-solid fa-user-plus"></i>
+                Adicionar
+              </button>
+            </div>
+          </div>
+          <div class="panel-card">
+            <h4>Professores e matérias</h4>
+            <div id="manager-list"></div>
+          </div>
+          <div class="panel-card" id="report-panel">
+            <h4>Relatório para o Word</h4>
+            <p>Copie os campos abaixo e coloque no documento com o mesmo código.</p>
+            <div class="inline-form">
+              <button class="btn btn-ghost" id="refresh-report">
+                <i class="fa-solid fa-rotate"></i>
+                Atualizar relatório
+              </button>
+              <button class="btn btn-ghost" id="download-report">
+                <i class="fa-solid fa-download"></i>
+                Baixar TXT
+              </button>
+            </div>
+            <textarea id="field-report" rows="12" readonly></textarea>
+          </div>
+        </section>
+      </div>
+    </aside>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <section class="date-section" id="date-section">
+        <div class="date-container">
+            <div>
+        <h2>Escolha a semana:</h2></div>
+        <div class="calendar">
+          <input id="campo-data-1" type="date" class="date-input" />
+          <p>até</p>
+          <input id="campo-data-2" type="date" class="date-input" />
+        </div>
+        </div>
+      </section>
+
+      <section class="card-grid" id="card-grid">
+        <!-- Cards renderizados via script.js -->
+      </section>
+
+      <div class="empty-state" id="empty-state">
+        <div class="empty-card">
+          <h3>Sua agenda esta vazia</h3>
+          <p>Abra o menu e use a aba <strong>Gerenciar</strong> para criar professores, matérias e dias.</p>
+          <button class="btn btn-primary" id="empty-open-manage">
+            <i class="fa-solid fa-pen-to-square"></i>
+            Começar agora
+          </button>
+        </div>
+      </div>
+
+      <script src="script.js"></script>
+      <script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
+      <script src="https://unpkg.com/imagesloaded@4/imagesloaded.pkgd.min.js"></script>
+      <script>
+        const grid = document.querySelector('.card-grid');
+        let msnry;
+
+        // Função para inicializar ou atualizar o Masonry
+        function initMasonry() {
+            if (msnry) {
+            msnry.destroy(); // destrói o layout anterior
+            }
+
+            msnry = new Masonry(grid, {
+            itemSelector: '.card',
+            percentPosition: true,
+            gutter: 16,
+            fitWidth: true
+            });
+        }
+
+        // Aguarda o carregamento completo
+        imagesLoaded(grid, () => {
+            initMasonry();
+
+            // Atualiza no resize com debounce
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                initMasonry();
+            }, 300);
+            });
+        });
+
+        window.refreshMasonry = initMasonry;
+      </script>
+
+</body>
+</html>
